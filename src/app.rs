@@ -9,9 +9,10 @@ use speedy2d::color::Color;
 use speedy2d::dimen::Vector2;
 use speedy2d::shape::Rectangle;
 use speedy2d::window::{KeyScancode, ModifiersState, MouseButton, MouseScrollDistance, VirtualKeyCode, WindowHandler, WindowHelper, WindowStartupInfo};
+use crate::debug::apply_debug;
 use crate::vec::Vec3f;
 
-use crate::world::{Entity, Transform, World};
+use crate::game::{Entity, Event, Transform, World};
 
 const UPDATE_MIN_DELTA: u128 = 10;
 
@@ -25,14 +26,7 @@ pub fn run(world: Arc<RwLock<World>>) {
         );
     }
     {
-        let entity = Entity::new(
-            Arc::clone(&world),
-            Option::None,
-        );
-        entity.get_transform().lock().unwrap().size = Vec3f::new(100.0, 100.0, 0.0);
-        entity.get_transform().lock().unwrap().color = Color::RED;
-        entity.get_transform().lock().unwrap().position = Vec3f::new(100.0, 100.0, 0.0);
-        world.write().unwrap().add_entity(Arc::new(entity));
+        apply_debug(&world)
     }
     let window = Window::new_centered("title", (640, 480)).unwrap();
     window.run_loop(AppWindowHandler { running, world })
@@ -50,6 +44,7 @@ fn update_thread(world: Arc<RwLock<World>>, running: Arc<AtomicBool>) {
         for entity in world.read().unwrap().get_entities() {
             entity.update(&delta);
         }
+        previous_time = current_time;
     }
 }
 
@@ -65,12 +60,31 @@ struct AppWindowHandler {
     world: Arc<RwLock<World>>,
 }
 
+impl AppWindowHandler {
+    fn exec_event(&mut self, event: &Event) {
+        for entity in self.world.read().unwrap().get_entities() {
+            entity.event(event)
+        };
+    }
+}
+
+fn cmp_f32(first: &f32, second: &f32) -> std::cmp::Ordering {
+    if *first > *second {
+        return std::cmp::Ordering::Greater
+    }
+    if *first == *second {
+        return std::cmp::Ordering::Equal
+    }
+    std::cmp::Ordering::Less
+}
+
 impl WindowHandler for AppWindowHandler {
     fn on_draw(&mut self, helper: &mut WindowHelper<()>, graphics: &mut Graphics2D) {
         let mut transforms: Vec<Transform> = Vec::new();
         for entity in self.world.read().unwrap().get_entities() {
             transforms.push(entity.copy_transform())
         }
+        transforms.sort_by(|first, second| cmp_f32(&first.position.z, &second.position.z));
         graphics.clear_screen(Color::WHITE);
         for transform in transforms {
             graphics.draw_rectangle(
@@ -83,4 +97,33 @@ impl WindowHandler for AppWindowHandler {
         }
         helper.request_redraw();
     }
+
+    fn on_mouse_move(&mut self, helper: &mut WindowHelper<()>, position: Vector2<f32>) {
+        self.exec_event(&Event::MouseMove(position))
+    }
+
+    fn on_mouse_button_down(&mut self, helper: &mut WindowHelper<()>, button: MouseButton) {
+        self.exec_event(&Event::MouseDown(button))
+    }
+
+    fn on_mouse_button_up(&mut self, helper: &mut WindowHelper<()>, button: MouseButton) {
+        self.exec_event(&Event::MouseUp(button))
+    }
+
+    fn on_mouse_wheel_scroll(&mut self, helper: &mut WindowHelper<()>, distance: MouseScrollDistance) {
+        self.exec_event(&Event::MouseScroll(distance))
+    }
+
+    fn on_key_down(&mut self, helper: &mut WindowHelper<()>, virtual_key_code: Option<VirtualKeyCode>, scancode: KeyScancode) {
+        if let Some(key_code) = virtual_key_code {
+            self.exec_event(&Event::KeyDown(key_code))
+        }
+    }
+
+    fn on_key_up(&mut self, helper: &mut WindowHelper<()>, virtual_key_code: Option<VirtualKeyCode>, scancode: KeyScancode) {
+        if let Some(key_code) = virtual_key_code {
+            self.exec_event(&Event::KeyUp(key_code))
+        }
+    }
+
 }
