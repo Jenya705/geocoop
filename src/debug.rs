@@ -12,10 +12,10 @@ pub fn apply_debug(world: &Arc<RwLock<World>>) {
     {
         world.write().unwrap().add_entity(
             EntityBuilder::new()
-                .position(Vec3f::new(100.0, 0.0, 100000.0))
-                .size(Vec3f::new(100.0, 100.0, 1.0))
+                .position(Vec3f::new(100.0, 0.0, -100.0))
+                .size(Vec3f::new(100.0, 50.0, 1.0))
                 .color(Color::CYAN)
-                .build(Arc::clone(&world))
+                .build(&world)
         )
     }
     {
@@ -26,7 +26,7 @@ pub fn apply_debug(world: &Arc<RwLock<World>>) {
                 .color(Color::RED)
                 .update_handler(DebugUpdate{})
                 .event_handler(DebugEvent{})
-                .build(Arc::clone(&world))
+                .build(&world)
         )
     }
 }

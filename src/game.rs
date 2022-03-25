@@ -1,11 +1,12 @@
 use std::borrow::BorrowMut;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, Mutex, RwLock};
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::thread::current;
 
 use speedy2d::color::Color;
 use speedy2d::dimen::Vector2;
 use speedy2d::window::{MouseButton, MouseScrollDistance, VirtualKeyCode};
-use speedy2d::window::VirtualKeyCode::Mute;
 
 use crate::vec::Vec3f;
 
@@ -20,10 +21,15 @@ pub struct Transform {
 }
 
 pub struct Entity {
+    id: AtomicU64,
     transform: Arc<Mutex<Transform>>,
     world: Arc<RwLock<World>>,
     update_handler: UpdateHandler,
     event_handler: EventHandler,
+}
+
+pub trait EntityUpdate {
+    fn update(&mut self, entity: &Entity, delta: &u128);
 }
 
 #[derive(Debug)]
@@ -36,15 +42,12 @@ pub enum Event {
     MouseScroll(MouseScrollDistance),
 }
 
-pub trait EntityUpdate {
-    fn update(&mut self, entity: &Entity, delta: &u128);
-}
-
 pub trait EntityEvent {
     fn event(&mut self, entity: &Entity, event: &Event);
 }
 
 pub struct World {
+    current_entity_id: AtomicU64,
     entities: Vec<Arc<Entity>>,
 }
 
@@ -55,19 +58,15 @@ pub struct EntityBuilder {
     event_handler: EventHandler,
 }
 
-impl Entity {
-    pub fn new(world: Arc<RwLock<World>>, update_handler: UpdateHandler, event_handler: EventHandler) -> Entity {
-        Entity {
-            transform: Arc::new(Mutex::new(Transform {
-                position: Vec3f::default(),
-                size: Vec3f::default(),
-                color: Color::BLACK,
-            })),
-            world,
-            update_handler,
-            event_handler,
-        }
+impl Transform {
+
+    pub fn for_render(&self) -> Transform {
+        
     }
+
+}
+
+impl Entity {
 
     pub fn get_transform(&self) -> &Arc<Mutex<Transform>> {
         &self.transform
@@ -79,6 +78,10 @@ impl Entity {
 
     pub fn get_world(&self) -> &Arc<RwLock<World>> {
         &self.world
+    }
+
+    pub fn set_id(&self, id: u64) {
+        self.id.store(id, Ordering::Relaxed);
     }
 
     pub fn update(&self, delta: &u128) {
@@ -98,6 +101,7 @@ impl World {
 
     pub fn new() -> World {
         World {
+            current_entity_id: AtomicU64::new(1),
             entities: Vec::new(),
         }
     }
@@ -107,8 +111,10 @@ impl World {
     }
 
     pub fn add_entity(&mut self, entity: Arc<Entity>) {
+        entity.set_id(self.current_entity_id.fetch_add(1, Ordering::Relaxed));
         self.entities.push(entity)
     }
+
 }
 
 impl EntityBuilder {
@@ -153,12 +159,13 @@ impl EntityBuilder {
         self
     }
 
-    pub fn build(self, world: Arc<RwLock<World>>) -> Arc<Entity> {
+    pub fn build(self, world: &Arc<RwLock<World>>) -> Arc<Entity> {
         Arc::new(Entity {
+            id: AtomicU64::new(0),
             transform: Arc::new(Mutex::new(self.transform)),
             update_handler: self.update_handler.clone(),
             event_handler: self.event_handler.clone(),
-            world,
+            world: Arc::clone(world),
         })
     }
 }

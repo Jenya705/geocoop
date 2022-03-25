@@ -84,7 +84,7 @@ impl WindowHandler for AppWindowHandler {
         for entity in self.world.read().unwrap().get_entities() {
             transforms.push(entity.copy_transform())
         }
-        transforms.sort_by(|first, second| cmp_f32(&first.position.z, &second.position.z));
+        transforms.sort_by(|first, second| cmp_f32(&second.position.z, &first.position.z));
         graphics.clear_screen(Color::WHITE);
         for transform in transforms {
             graphics.draw_rectangle(
