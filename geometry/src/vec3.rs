@@ -2,14 +2,14 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 
 #[derive(Copy, Clone, PartialEq, Default, Debug)]
 pub struct Vec3f {
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 impl Vec3f {
 
-    pub fn new(x: f32, y: f32, z: f32) -> Vec3f {
+    pub fn new(x: f64, y: f64, z: f64) -> Vec3f {
         Vec3f {x, y, z}
     }
 
@@ -17,11 +17,11 @@ impl Vec3f {
         Vec3f::new(0.0, 0.0, 0.0)
     }
 
-    pub fn squared_length(&self) -> f32 {
+    pub fn squared_length(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
 
-    pub fn length(&self) -> f32 {
+    pub fn length(&self) -> f64 {
         self.squared_length().sqrt()
     }
 
@@ -95,71 +95,71 @@ impl DivAssign for Vec3f {
     }
 }
 
-impl Add<f32> for Vec3f {
+impl Add<f64> for Vec3f {
     type Output = Vec3f;
 
-    fn add(self, rhs: f32) -> Self::Output {
+    fn add(self, rhs: f64) -> Self::Output {
         Vec3f::new(self.x + rhs, self.y + rhs, self.z + rhs)
     }
 }
 
-impl Sub<f32> for Vec3f {
+impl Sub<f64> for Vec3f {
     type Output = Vec3f;
 
-    fn sub(self, rhs: f32) -> Self::Output {
+    fn sub(self, rhs: f64) -> Self::Output {
         Vec3f::new(self.x - rhs, self.y - rhs, self.z - rhs)
     }
 }
 
-impl Mul<f32> for Vec3f {
+impl Mul<f64> for Vec3f {
     type Output = Vec3f;
 
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Vec3f::new(self.x * rhs, self.y * rhs, self.z * rhs)
     }
 }
 
-impl Div<f32> for Vec3f {
+impl Div<f64> for Vec3f {
     type Output = Vec3f;
 
-    fn div(self, rhs: f32) -> Self::Output {
+    fn div(self, rhs: f64) -> Self::Output {
         Vec3f::new(self.x / rhs, self.y / rhs, self.z / rhs)
     }
 }
 
-impl AddAssign<f32> for Vec3f {
-    fn add_assign(&mut self, rhs: f32) {
+impl AddAssign<f64> for Vec3f {
+    fn add_assign(&mut self, rhs: f64) {
         self.x += rhs;
         self.y += rhs;
         self.z += rhs;
     }
 }
 
-impl SubAssign<f32> for Vec3f {
-    fn sub_assign(&mut self, rhs: f32) {
+impl SubAssign<f64> for Vec3f {
+    fn sub_assign(&mut self, rhs: f64) {
         self.x -= rhs;
         self.y -= rhs;
         self.z -= rhs;
     }
 }
 
-impl MulAssign<f32> for Vec3f {
-    fn mul_assign(&mut self, rhs: f32) {
+impl MulAssign<f64> for Vec3f {
+    fn mul_assign(&mut self, rhs: f64) {
         self.x *= rhs;
         self.y *= rhs;
         self.z *= rhs;
     }
 }
 
-impl DivAssign<f32> for Vec3f {
-    fn div_assign(&mut self, rhs: f32) {
+impl DivAssign<f64> for Vec3f {
+    fn div_assign(&mut self, rhs: f64) {
         self.x /= rhs;
         self.y /= rhs;
         self.z /= rhs;
     }
 }
 
-impl Add<Vec3f> for f32 {
+impl Add<Vec3f> for f64 {
     type Output = Vec3f;
 
     fn add(self, rhs: Vec3f) -> Self::Output {
@@ -167,7 +167,7 @@ impl Add<Vec3f> for f32 {
     }
 }
 
-impl Sub<Vec3f> for f32 {
+impl Sub<Vec3f> for f64 {
     type Output = Vec3f;
 
     fn sub(self, rhs: Vec3f) -> Self::Output {
@@ -175,7 +175,7 @@ impl Sub<Vec3f> for f32 {
     }
 }
 
-impl Mul<Vec3f> for f32 {
+impl Mul<Vec3f> for f64 {
     type Output = Vec3f;
 
     fn mul(self, rhs: Vec3f) -> Self::Output {
@@ -183,7 +183,7 @@ impl Mul<Vec3f> for f32 {
     }
 }
 
-impl Div<Vec3f> for f32 {
+impl Div<Vec3f> for f64 {
     type Output = Vec3f;
 
     fn div(self, rhs: Vec3f) -> Self::Output {
@@ -201,7 +201,8 @@ impl Neg for Vec3f {
 
 #[cfg(test)]
 mod tests {
-    use crate::vec::Vec3f;
+    use crate::vec3::Vec3f;
+
 
     #[test]
     fn init_tests() {
@@ -232,7 +233,7 @@ mod tests {
     }
 
     #[test]
-    fn vec_f32_calc_tests() {
+    fn vec_f64_calc_tests() {
         let vec1 = Vec3f::new(1.0, 2.0, 3.0);
         assert_eq!(vec1 + 2.0, Vec3f::new(3.0, 4.0, 5.0));
         assert_eq!(vec1 - 2.0, Vec3f::new(-1.0, 0.0, 1.0));
